@@ -1,0 +1,37 @@
+{
+	"name": "detune",
+	"version": "1.0.0",
+	"type": "module",
+	"description": "Create an instrument tuner on any website.",
+	"main": "dist/detune.js",
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": "./dist/detune.js"
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"preview": "vite preview",
+		"format": "npx prettier --write ."
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/troyvassalotti/detune.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/troyvassalotti/detune/issues"
+	},
+	"homepage": "https://github.com/troyvassalotti/detune#readme",
+	"dependencies": {
+		"lit": "^2.5.0"
+	},
+	"devDependencies": {
+		"typescript": "^4.9.3",
+		"vite": "^4.0.0"
+	}
+}
