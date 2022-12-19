@@ -7,7 +7,7 @@ export default {
 			formats: ['es'],
 		},
 		rollupOptions: {
-			external: /^lit/,
+			external: ['lit', 'tone'],
 		},
 	},
 }
