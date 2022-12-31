@@ -1,6 +1,6 @@
 {
 	"name": "@troyv/detune",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"type": "module",
 	"description": "Create an instrument tuner on any website.",
 	"main": "dist/detune.js",
