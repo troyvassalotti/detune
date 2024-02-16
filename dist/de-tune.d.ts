@@ -1,9 +1,10 @@
-import { LitElement, TemplateResult } from 'lit';
-import * as Tone from 'tone';
+import { LitElement, TemplateResult } from "lit";
+import { Synth } from "tone";
 interface NoteMap {
     note: string;
     range: string;
     target: string;
+    button: HTMLButtonElement;
 }
 /**
  * @element de-tune
@@ -15,10 +16,18 @@ interface NoteMap {
 export declare class Detune extends LitElement {
     /** The number of quarter notes each note should ring for. */
     duration: string;
+    /** How long to wait before the next note when playing them all together. */
+    playAllDelay: number;
+    /**
+     * By default, the component replaces the button text with the letter of the note only.
+     *
+     * Set this attribute if you want the full note and range.
+     */
+    showFullNote: boolean;
     /** Tony synth processor for single notes. */
-    synth: Tone.Synth<Tone.SynthOptions>;
-    get buttons(): Element[];
-    get playAllButton(): Element | null;
+    synth: Synth<import("tone").SynthOptions>;
+    get buttons(): HTMLButtonElement[];
+    get playAllButton(): HTMLButtonElement;
     /** List of notes and their octave range. */
     get notes(): NoteMap[];
     /** Array of all notes. */

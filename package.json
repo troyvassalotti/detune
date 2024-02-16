@@ -3,7 +3,7 @@
 	"version": "1.0.1",
 	"type": "module",
 	"description": "Create an instrument tuner on any website.",
-	"main": "dist/de-tune.js",
+	"main": "./dist/de-tune.js",
 	"files": [
 		"dist"
 	],
@@ -12,9 +12,9 @@
 	},
 	"types": "./dist/de-tune.d.ts",
 	"scripts": {
-		"build": "tsc",
+		"build": "npx tsc",
 		"format": "npx prettier --write .",
-		"start": "npm run build && npx http-server ."
+		"start": "npx tsc-watch --onSuccess \"npx http-server .\""
 	},
 	"repository": {
 		"type": "git",

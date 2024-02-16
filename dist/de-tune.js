@@ -4,12 +4,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { LitElement, html } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { map } from 'lit/directives/map.js';
-import * as Tone from 'tone';
-const defaultRange = '4';
-const defaultDuration = '8n';
+import { LitElement, html } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import { Synth, PolySynth, now } from "tone";
+const defaultRange = "4";
+const defaultDuration = "8n";
 /**
  * @element de-tune
  * @summary Pass in a set of notes to get an interactive instrument tuner.
@@ -22,14 +21,43 @@ let Detune = class Detune extends LitElement {
         super(...arguments);
         /** The number of quarter notes each note should ring for. */
         this.duration = defaultDuration;
+        /** How long to wait before the next note when playing them all together. */
+        this.playAllDelay = 0.5;
+        /**
+         * By default, the component replaces the button text with the letter of the note only.
+         *
+         * Set this attribute if you want the full note and range.
+         */
+        this.showFullNote = false;
         /** Tony synth processor for single notes. */
-        this.synth = new Tone.Synth().toDestination();
+        this.synth = new Synth().toDestination();
+        /**
+         * Play the selected note.
+         * @param event Click event
+         */
+        this.playNote = (event) => {
+            const target = event.target;
+            if (target) {
+                this.synth.triggerAttackRelease(target.value, this.duration);
+            }
+        };
+        /** Play all notes in sequence. */
+        this.playAll = () => {
+            const poly = new PolySynth(Synth).toDestination();
+            const time = now();
+            let when = 0;
+            this.notes?.forEach((note) => {
+                poly.triggerAttack(note.note, time + when);
+                when += this.playAllDelay;
+            });
+            poly.triggerRelease(this.allNotes, time + when + 1);
+        };
     }
     get buttons() {
-        return Array.from(this.querySelectorAll('button:not([data-play-all])'));
+        return Array.from(this.querySelectorAll("button:not([data-play-all])"));
     }
     get playAllButton() {
-        return this.querySelector('[data-play-all]');
+        return this.querySelector("button[data-play-all]");
     }
     /** List of notes and their octave range. */
     get notes() {
@@ -58,44 +86,19 @@ let Detune = class Detune extends LitElement {
     get allNotes() {
         return this.notes?.map((note) => note.note);
     }
-    /**
-     * Play the selected note.
-     * @param event Click event
-     */
-    playNote(event) {
-        const target = event.target;
-        if (target) {
-            this.synth.triggerAttackRelease(target.value, this.duration);
-        }
-    }
-    /** Play all notes in sequence. */
-    playAll() {
-        const poly = new Tone.PolySynth(Tone.Synth).toDestination();
-        const time = Tone.now();
-        let when = 0;
-        this.notes?.forEach((note) => {
-            poly.triggerAttack(note.note, time + when);
-            when += 0.5;
-        });
-        poly.triggerRelease(this.allNotes, time + when + 1);
-    }
     connectedCallback() {
         super.connectedCallback();
-        console.log(this.notes);
-        // todo iterate over each note and add button values and event listeners
+        this.notes.forEach((note) => {
+            note.button.value = note.note;
+            note.button.addEventListener("click", this.playNote);
+            if (!this.showFullNote) {
+                note.button.innerText = note.target;
+            }
+        });
+        this.playAllButton?.addEventListener("click", this.playAll);
     }
     render() {
         return html `<slot></slot>`;
-        return html `<div class="detune__notes">
-				${map(this.notes, (note) => html `<button
-							class="detune__note"
-							value=${note.note}
-							@click=${this.playNote}
-						>
-							${note.target}
-						</button>`)}
-			</div>
-			<button class="detune__playAll" @click=${this.playAll}>Play All</button>`;
     }
 };
 __decorate([
@@ -110,10 +113,16 @@ __decorate([
     })
 ], Detune.prototype, "duration", void 0);
 __decorate([
+    property({ type: Number })
+], Detune.prototype, "playAllDelay", void 0);
+__decorate([
+    property({ type: Boolean })
+], Detune.prototype, "showFullNote", void 0);
+__decorate([
     state()
 ], Detune.prototype, "synth", void 0);
 Detune = __decorate([
-    customElement('de-tune')
+    customElement("de-tune")
 ], Detune);
 export { Detune };
 //# sourceMappingURL=de-tune.js.map
