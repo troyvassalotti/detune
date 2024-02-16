@@ -4,7 +4,11 @@ import { map } from 'lit/directives/map.js'
 import * as Tone from 'tone'
 import type { Frequency } from 'tone/build/esm/core/type/Units'
 
-type NoteMap = Record<string, string>
+interface NoteMap {
+	note: string
+	range: string
+	target: string
+}
 
 const defaultRange = '4'
 const defaultDuration = '8n'
@@ -18,39 +22,9 @@ const defaultDuration = '8n'
  */
 @customElement('de-tune')
 export class Detune extends LitElement {
-	/** List of notes and their octave range. */
-	@property({
-		type: String,
-		converter: (value) => {
-			if (value) {
-				const splits = value.split(' ')
-				return splits.map((note) => {
-					const numbers = note.match(/\d+/)
-					if (numbers) {
-						const range = numbers[0]
-						const target = note.split(range)[0]
-						return {
-							note,
-							range,
-							target,
-						}
-					}
-					return {
-						note: `${note}${defaultRange}`,
-						range: defaultRange,
-						target: note,
-					}
-				})
-			}
-			return undefined
-		},
-	})
-	notes: NoteMap[] | undefined
-
 	/** The number of quarter notes each note should ring for. */
 	@property({
 		type: String,
-		reflect: true,
 		converter: (value) => {
 			if (value) {
 				return `${value}n`
@@ -63,6 +37,40 @@ export class Detune extends LitElement {
 	/** Tony synth processor for single notes. */
 	@state()
 	synth = new Tone.Synth().toDestination()
+
+	get buttons() {
+		return Array.from(this.querySelectorAll('button:not([data-play-all])'))
+	}
+
+	get playAllButton() {
+		return this.querySelector('[data-play-all]')
+	}
+
+	/** List of notes and their octave range. */
+	get notes(): NoteMap[] {
+    return this.buttons.map((button) => {
+      let note = (button as HTMLButtonElement).innerText;
+      let numbers = note.match(/\d+/);
+			if (numbers) {
+				let range = numbers[0]
+				let target = note.split(range)[0]
+
+				return {
+					note,
+					range,
+					target,
+          button,
+				}
+			}
+
+			return {
+				note: `${note}${defaultRange}`,
+				range: defaultRange,
+				target: note,
+        button,
+			}
+    })
+	}
 
 	/** Array of all notes. */
 	private get allNotes(): string[] | undefined {
@@ -93,12 +101,16 @@ export class Detune extends LitElement {
 		poly.triggerRelease(this.allNotes as Frequency[], time + when + 1)
 	}
 
-	/** Render as children instead of in a shadow root. */
-	protected createRenderRoot(): Element | ShadowRoot {
-		return this
-	}
+connectedCallback() {
+    super.connectedCallback();
+
+    console.log(this.notes);
+    // todo iterate over each note and add button values and event listeners
+  }
 
 	render(): TemplateResult {
+		return html`<slot></slot>`
+
 		return html`<div class="detune__notes">
 				${map(
 					this.notes,
@@ -109,7 +121,7 @@ export class Detune extends LitElement {
 							@click=${this.playNote}
 						>
 							${note.target}
-						</button>`
+						</button>`,
 				)}
 			</div>
 			<button class="detune__playAll" @click=${this.playAll}>Play All</button>`

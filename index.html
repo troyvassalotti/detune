@@ -1,31 +1,37 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>detune</title>
-		<style>
-			html {
-				box-sizing: border-box;
-				color-scheme: light dark;
+		<title>de-tune</title>
+		<link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
+		<!-- for browsers that don't natively support import maps -->
+		<!-- <script async src="https://esm.sh/es-module-shims"></script> -->
+		<script type="importmap">
+			{
+				"imports": {
+					"lit": "https://esm.sh/lit@3",
+					"lit/": "https://esm.sh/lit@3/",
+					"tone": "https://esm.sh/tone@14.7.77"
+				}
 			}
-
-			*,
-			*::after,
-			*::before {
-				box-sizing: inherit;
-			}
-
-			body {
-				font-family: system-ui;
-				margin: 0;
-				min-block-size: 100vh;
-			}
-		</style>
-		<script type="module" src="./src/index.ts"></script>
+		</script>
+		<script type="module" src="./dist/de-tune.js"></script>
 	</head>
 	<body>
-		<de-tune notes="E2 Ab D3 G#3 B3 E4"></de-tune>
-		<de-tune notes="D2 A2 D3" duration="8"></de-tune>
+		<de-tune>
+			<button>E2</button>
+			<button>Ab</button>
+			<button>D3</button>
+			<button>G#3</button>
+			<button>B3</button>
+			<button>E4</button>
+			<button data-play-all>Play All</button>
+		</de-tune>
+		<de-tune duration="8">
+			<button>D2</button>
+			<button>A2</button>
+			<button>D3</button>
+		</de-tune>
 	</body>
 </html>
