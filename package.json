@@ -26,10 +26,10 @@
 	},
 	"homepage": "https://github.com/troyvassalotti/detune#readme",
 	"dependencies": {
-		"lit": "^3.1.2",
-		"tone": "^14.7.77"
+		"lit": "^3.2.1",
+		"tone": "^15.0.4"
 	},
 	"devDependencies": {
-		"typescript": "^5.3.3"
+		"typescript": "^5.7.2"
 	}
 }

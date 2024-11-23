@@ -1,12 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>de-tune</title>
-		<link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
-		<!-- for browsers that don't natively support import maps -->
-		<!-- <script async src="https://esm.sh/es-module-shims"></script> -->
 		<script type="importmap">
 			{
 				"imports": {
@@ -19,19 +16,47 @@
 		<script type="module" src="./dist/de-tune.js"></script>
 	</head>
 	<body>
-		<de-tune>
-			<button>E2</button>
-			<button>Ab</button>
-			<button>D3</button>
-			<button>G#3</button>
-			<button>B3</button>
-			<button>E4</button>
-			<button data-play-all>Play All</button>
-		</de-tune>
-		<de-tune duration="8" showfullnote playalldelay="1">
-			<button>D2</button>
-			<button>A2</button>
-			<button>D3</button>
-		</de-tune>
+		<style
+			contenteditable
+			style="
+				display: block;
+				white-space: pre;
+				border: 1px solid black;
+				margin-block-end: 1rem;
+			"
+		>
+			de-tune::part(base) {
+				display: flex;
+				gap: 1rem;
+			}
+
+			de-tune::part(note) {
+				border: 1px solid black;
+				cursor: pointer;
+				font: inherit;
+				margin: 0;
+				padding: 1ch;
+			}
+
+			de-tune::part(notes) {
+				margin-block-end: 1rem;
+			}
+
+			de-tune::part(play-all-container) {
+				padding: 1rem;
+			}
+
+			de-tune::part(play-all) {
+				font-family: monospace;
+			}
+		</style>
+		<div>
+			<de-tune notes="E2 Ab D3 G#3 B3 E4" playalldelay=".25" showfullnote>
+				<span slot="play-all">Play All The Notes</span>
+			</de-tune>
+		</div>
+		<div>
+			<de-tune duration="8" notes="D2 A2 D3" disableplayall></de-tune>
+		</div>
 	</body>
 </html>

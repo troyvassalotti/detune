@@ -4,125 +4,141 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { LitElement, html } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
-import { Synth, PolySynth, now } from "tone";
-const defaultRange = "4";
-const defaultDuration = "8n";
+import { LitElement, html, css } from "lit";
+import { customElement, property } from "lit/decorators.js";
+import { map } from "lit/directives/map.js";
+import { Synth, PolySynth, now, Time } from "tone";
 /**
  * @element de-tune
- * @summary Pass in a set of notes to get an interactive instrument tuner.
- *
- * @attr {String} notes - Space-delineated list of notes and octave ranges.
- * @attr {String} duration - Number of quarter notes each note should ring for.
+ * @summary Assign a set of notes to get an interactive instrument tuner.
  */
 let Detune = class Detune extends LitElement {
     constructor() {
         super(...arguments);
-        /** The number of quarter notes each note should ring for. */
-        this.duration = defaultDuration;
+        /** The duration of time a note should ring. */
+        this.duration = "8n";
         /** How long to wait before the next note when playing them all together. */
         this.playAllDelay = 0.5;
+        /** Hides the play all button when true. */
+        this.disablePlayAll = false;
+        this.notes = null;
         /**
          * By default, the component replaces the button text with the letter of the note only.
          *
          * Set this attribute if you want the full note and range.
          */
         this.showFullNote = false;
-        /** Tony synth processor for single notes. */
         this.synth = new Synth().toDestination();
-        /**
-         * Play the selected note.
-         * @param event Click event
-         */
-        this.playNote = (event) => {
-            const target = event.target;
-            if (target) {
-                this.synth.triggerAttackRelease(target.value, this.duration);
-            }
-        };
-        /** Play all notes in sequence. */
-        this.playAll = () => {
-            const poly = new PolySynth(Synth).toDestination();
-            const time = now();
-            let when = 0;
-            this.notes?.forEach((note) => {
-                poly.triggerAttack(note.note, time + when);
-                when += this.playAllDelay;
-            });
-            poly.triggerRelease(this.allNotes, time + when + 1);
-        };
-    }
-    get buttons() {
-        return Array.from(this.querySelectorAll("button:not([data-play-all])"));
-    }
-    get playAllButton() {
-        return this.querySelector("button[data-play-all]");
-    }
-    /** List of notes and their octave range. */
-    get notes() {
-        return this.buttons.map((button) => {
-            let note = button.innerText;
-            let numbers = note.match(/\d+/);
-            if (numbers) {
-                let range = numbers[0];
-                let target = note.split(range)[0];
-                return {
-                    note,
-                    range,
-                    target,
-                    button,
-                };
-            }
-            return {
-                note: `${note}${defaultRange}`,
-                range: defaultRange,
-                target: note,
-                button,
-            };
-        });
+        this.polySynth = new PolySynth(Synth).toDestination();
     }
     /** Array of all notes. */
     get allNotes() {
         return this.notes?.map((note) => note.note);
     }
-    connectedCallback() {
-        super.connectedCallback();
-        this.notes.forEach((note) => {
-            note.button.value = note.note;
-            note.button.addEventListener("click", this.playNote);
-            if (!this.showFullNote) {
-                note.button.innerText = note.target;
-            }
+    /** Play the selected note. */
+    playNote({ target }) {
+        if (target instanceof HTMLButtonElement) {
+            this.synth.triggerAttackRelease(target.dataset.value, this.duration);
+        }
+    }
+    /** Play all notes in sequence. */
+    playAll() {
+        if (!this.notes || !this.allNotes)
+            return;
+        const time = now();
+        const playAllInSeconds = Time(this.playAllDelay).toSeconds();
+        let when = 0;
+        this.allNotes.forEach((note) => {
+            this.polySynth.triggerAttack(note, time + when);
+            when += playAllInSeconds;
         });
-        this.playAllButton?.addEventListener("click", this.playAll);
+        this.polySynth.triggerRelease(this.allNotes, time + when + 1);
+    }
+    renderNotes() {
+        if (this.notes) {
+            return html `
+				${map(this.notes, (note) => html `
+						<button
+							part="note"
+							data-value="${note.note}"
+							@click=${this.playNote}
+						>
+							${this.showFullNote ? note.note : note.target}
+						</button>
+					`)}
+			`;
+        }
+        return html ``;
     }
     render() {
-        return html `<slot></slot>`;
+        return html `
+			<div class="base" part="base">
+				<div class="notes" part="notes">${this.renderNotes()}</div>
+				${!this.disablePlayAll
+            ? html `
+							<div class="play-all" part="play-all-container">
+								<button
+									part="note play-all"
+									class="play-all-button"
+									@click=${this.playAll}
+								>
+									<slot name="play-all">Play All</slot>
+								</button>
+							</div>
+					  `
+            : html ``}
+			</div>
+		`;
     }
 };
+Detune.defaultRange = 4;
+Detune.styles = css `
+		:host {
+			box-sizing: border-box;
+			display: inline-block;
+		}
+	`;
 __decorate([
-    property({
-        type: String,
-        converter: (value) => {
-            if (value) {
-                return `${value}n`;
-            }
-            return undefined;
-        },
-    })
+    property()
 ], Detune.prototype, "duration", void 0);
 __decorate([
-    property({ type: Number })
+    property()
 ], Detune.prototype, "playAllDelay", void 0);
 __decorate([
     property({ type: Boolean })
-], Detune.prototype, "showFullNote", void 0);
+], Detune.prototype, "disablePlayAll", void 0);
 __decorate([
-    state()
-], Detune.prototype, "synth", void 0);
+    property({
+        converter: (value) => {
+            if (typeof value !== "string")
+                return null;
+            const notes = value.split(" ");
+            return notes.map((note) => {
+                let numbers = note.match(/\d+/);
+                if (numbers) {
+                    let rangeString = numbers[0];
+                    let target = note.split(rangeString)[0];
+                    let range = Number(rangeString);
+                    return {
+                        note,
+                        range,
+                        target,
+                    };
+                }
+                return {
+                    note: `${note}${Detune.defaultRange}`,
+                    range: Detune.defaultRange,
+                    target: note,
+                };
+            });
+        },
+    })
+], Detune.prototype, "notes", void 0);
+__decorate([
+    property({ type: Boolean })
+], Detune.prototype, "showFullNote", void 0);
 Detune = __decorate([
     customElement("de-tune")
 ], Detune);
-export { Detune };
+export default Detune;
 //# sourceMappingURL=de-tune.js.map
